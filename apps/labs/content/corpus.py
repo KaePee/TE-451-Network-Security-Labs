@@ -84,3 +84,14 @@ VIGENERE_KEYS = [
     "CIPHER", "SHANNON", "KUMASI", "SECRET", "LECTURE", "PACKET", "ROUTER", "BINARY",
     "KERCKHOFF", "ENIGMA", "FEISTEL", "TUNNEL", "SIGNAL", "VOLTAGE", "GATEWAY",
 ]
+
+# Common passwords that appear in public wordlists (rockyou, SecLists) and in
+# CrackStation's lookup tables. Lab 5 hashes these so students see that a weak,
+# unsalted password falls instantly to an online tool. Deliberately ordinary.
+LEAKED_PASSWORDS = [
+    "iloveyou", "princess", "sunshine", "football", "superman", "butterfly",
+    "shadow", "michael", "jennifer", "computer", "trustno1", "babygirl",
+    "chocolate", "password1", "soccer", "jordan23", "liverpool", "starwars",
+    "whatever", "monkey", "flower", "qwerty123", "letmein", "dragon",
+    "welcome1", "snoopy", "cheese", "ginger", "pepper", "maggie",
+]

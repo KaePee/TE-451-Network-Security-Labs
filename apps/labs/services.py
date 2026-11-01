@@ -136,3 +136,13 @@ def reset_session(session: LabSession, actor, reason: str) -> None:
     """Delete a student's attempt so they can start fresh (new numbers too)."""
     record(actor, "reset_lab", session.student, f"{session.lab.slug}: {reason}")
     session.delete()
+
+
+@transaction.atomic
+def reset_lab(lab: Lab, actor, reason: str) -> int:
+    """Reset every student's attempt at a lab, all or nothing. Returns the count."""
+    sessions = list(lab.sessions.select_related("student", "lab"))
+    for session in sessions:
+        reset_session(session, actor, reason)
+    record(actor, "reset_lab_all", detail=f"{lab.slug}: {len(sessions)} attempts: {reason}")
+    return len(sessions)
