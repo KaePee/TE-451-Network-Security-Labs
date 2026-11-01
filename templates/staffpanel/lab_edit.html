@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+<p class="muted small"><a href="{% url 'staff:lab_list' %}">← Labs</a></p>
+<h1>{{ lab.title }}: settings</h1>
+<div class="card">
+  <form method="post">{% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      {% if field.field.widget.input_type == "checkbox" %}
+        <label>{{ field }} {{ field.label }}</label>
+      {% else %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}
+      {% endif %}
+      {% if field.help_text %}<span class="form-help">{{ field.help_text }}</span>{% endif %}{{ field.errors }}
+    {% endfor %}
+    <p><button type="submit">Save</button></p>
+  </form>
+  <p class="small muted">Times are Africa/Accra (GMT). Changes apply immediately, including to students mid-session. Extra time for individual students is granted from their student page.</p>
+</div>
+{% endblock %}

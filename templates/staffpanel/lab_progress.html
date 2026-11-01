@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% load labs_tags %}
+{% block content %}
+<div class="page-head">
+  <div><p class="muted small"><a href="{% url 'staff:lab_list' %}">← Labs</a></p><h1>{{ lab.title }}: progress</h1></div>
+  <div class="actions"><a class="btn btn-secondary" href="{% url 'staff:lab_edit' lab.slug %}">Settings</a></div>
+</div>
+<p class="small muted">✓ correct · amber number = partial score · ✗n = n wrong tries · … awaiting TA · green number = TA grade</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Student</th><th>Status</th><th>Time left</th>
+    {% for t in tasks %}<th class="grid-cell" title="{{ t.title }}">{{ forloop.counter }}</th>{% endfor %}</tr></thead>
+  <tbody>{% for r in rows %}
+    <tr><td><a href="{% url 'staff:student' r.student.pk %}">{{ r.student.index_number }}</a> <span class="small muted">{{ r.student.last_name }}</span></td>
+      <td>{% status_badge r.state %}</td>
+      <td class="small">{% if r.state.seconds_left is not None %}{% widthratio r.state.seconds_left 60 1 %} min{% endif %}</td>
+      {% for c in r.cells %}<td class="grid-cell">{% if c %}{% if c.status == "correct" %}<span class="badge badge-ok">✓</span>{% elif c.status == "partial" %}<span class="badge badge-warn">{{ c.score|floatformat:"-1" }}</span>{% elif c.status == "graded" %}<span class="badge badge-ok">{{ c.score|floatformat:"-1" }}</span>{% elif c.status == "pending" %}<span class="badge badge-info">…</span>{% else %}<span class="badge badge-bad">✗{{ c.tries }}</span>{% endif %}{% endif %}</td>{% endfor %}
+    </tr>
+  {% endfor %}</tbody>
+</table></div>
+{% endblock %}

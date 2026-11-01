@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+<h1>Import students</h1>
+{% if result and not result.errors %}
+  <div class="card">
+    <h2>Import complete</h2>
+    <p>Created <strong>{{ result.created|length }}</strong> account(s){% if result.skipped %}; skipped {{ result.skipped|length }} that already exist ({{ result.skipped|join:", "|truncatechars:200 }}){% endif %}.</p>
+    {% if result.created %}
+      <p><a class="btn" href="{% url 'staff:student_import_credentials' %}">Download credentials CSV</a></p>
+      <p class="small muted">This file holds temporary passwords and can be downloaded <strong>once</strong>. Hand each student their slip; they must change the password at first login. Delete the file afterwards.</p>
+    {% endif %}
+  </div>
+{% else %}
+  {% if result.errors %}
+  <div class="card"><h2>Nothing was imported</h2><p>Fix these and upload again:</p>
+    <ul class="errorlist">{% for e in result.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+  {% endif %}
+  <div class="card">
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}
+      <label for="id_file">Class list (CSV)</label>{{ form.file }}{{ form.file.errors }}
+      <span class="form-help">{{ form.file.help_text }}</span>
+      <p><button type="submit">Import</button></p>
+    </form>
+    <p class="small muted">Example:</p>
+<pre>index_number,first_name,last_name,email
+2045621,Ama,Mensah,amensah@st.knust.edu.gh
+2045622,Kofi,Boateng,</pre>
+    <p class="small muted">Header names like <code>Index No</code>, <code>Surname</code>, <code>Other Names</code> are also recognised. Leave <code>password</code> out to generate one per student. Existing index numbers are skipped.</p>
+  </div>
+{% endif %}
+{% endblock %}

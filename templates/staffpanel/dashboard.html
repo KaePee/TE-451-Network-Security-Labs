@@ -1,0 +1,53 @@
+{% extends "base.html" %}{% load labs_tags %}
+{% block title %}Dashboard · TE 451 Labs{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Dashboard</h1><p class="muted">{% now "l j F Y, H:i" %}</p></div>
+  <div class="actions">
+    <a class="btn" href="{% url 'staff:export_marks' %}">Export marks (CSV)</a>
+    <a class="btn btn-secondary" href="{% url 'staff:logins' %}">Login log</a>
+    {% if user.is_lecturer %}<a class="btn btn-secondary" href="{% url 'staff:audit' %}">Audit log</a>{% endif %}
+  </div>
+</div>
+
+<div class="grid">
+  <a class="stat" href="{% url 'staff:students' %}" style="text-decoration:none;color:inherit"><div class="num">{{ stats.students }}</div><div class="lbl">Students</div></a>
+  <div class="stat"><div class="num">{{ stats.online }}</div><div class="lbl">Online now</div></div>
+  <div class="stat"><div class="num">{{ stats.logged_in_today }}</div><div class="lbl">Logged in today</div></div>
+  <a class="stat" href="{% url 'staff:students' %}?filter=never" style="text-decoration:none;color:inherit"><div class="num">{{ stats.never_logged_in }}</div><div class="lbl">Never logged in</div></a>
+  <a class="stat" href="{% url 'staff:grading' %}" style="text-decoration:none;color:inherit"><div class="num">{{ stats.pending }}</div><div class="lbl">Awaiting grading</div></a>
+  <a class="stat" href="{% url 'staff:logins' %}?kind=failed" style="text-decoration:none;color:inherit"><div class="num">{{ stats.failed_24h }}</div><div class="lbl">Failed logins (24h)</div></a>
+  <a class="stat" href="{% url 'staff:students' %}?filter=suspended" style="text-decoration:none;color:inherit"><div class="num">{{ stats.suspended }}</div><div class="lbl">Suspended</div></a>
+</div>
+
+<h2>Labs</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Lab</th><th>Mode</th><th>Window</th><th class="num">Started</th><th class="num">Finished</th><th class="num">Avg score</th><th class="num">To grade</th></tr></thead>
+  <tbody>
+  {% for lab in labs %}
+    <tr>
+      <td><a href="{% url 'staff:lab_progress' lab.slug %}">L{{ lab.lecture }} · {{ lab.title }}</a>
+        {% if not lab.published %}<span class="badge badge-muted">hidden</span>{% endif %}</td>
+      <td class="small">{{ lab.get_mode_display }}{% if lab.mode == "timed" %} ({{ lab.duration_minutes }}m){% endif %}</td>
+      <td class="small">{{ lab.opens_at|date:"j M H:i"|default:"-" }} → {{ lab.closes_at|date:"j M H:i"|default:"-" }}</td>
+      <td class="num">{{ lab.started }} / {{ stats.students }}</td>
+      <td class="num">{{ lab.finished }}</td>
+      <td class="num">{% if lab.avg_pct is not None %}{{ lab.avg_pct|floatformat:0 }}%{% else %}-{% endif %}</td>
+      <td class="num">{% if lab.pending %}<a href="{% url 'staff:grading' %}?lab={{ lab.slug }}">{{ lab.pending }}</a>{% else %}0{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+
+<h2>Recent sign-ins</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>When</th><th>User</th><th>Event</th><th>IP</th></tr></thead>
+  <tbody>
+  {% for e in recent %}
+    <tr><td class="small">{{ e.at|date:"j M H:i:s" }}</td>
+      <td>{% if e.user %}<a href="{% url 'staff:student' e.user.pk %}">{{ e.username }}</a>{% else %}{{ e.username }}{% endif %}</td>
+      <td>{{ e.get_kind_display }}</td><td class="small">{{ e.ip|default:"" }}</td></tr>
+  {% empty %}<tr><td colspan="4" class="muted">No activity yet.</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

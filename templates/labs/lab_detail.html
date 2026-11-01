@@ -1,0 +1,82 @@
+{% extends "base.html" %}{% load static labs_tags %}
+{% block title %}{{ lab.title }} · TE 451 Labs{% endblock %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+{% if state.seconds_left is not None %}
+  <div class="timer" id="lab-timer" data-seconds="{{ state.seconds_left }}">Time left: <span data-left>…</span></div>
+{% endif %}
+<div class="page-head">
+  <div>
+    <p class="muted small">Lecture {{ lab.lecture }}</p>
+    <h1>{{ lab.title }}</h1>
+  </div>
+  <div>{% status_badge state %}</div>
+</div>
+
+<div class="card">
+  {{ labdef.intro|safe }}
+  <p class="small muted">
+    {% if lab.mode == "timed" %}Timed lab: you have <strong>{{ lab.duration_minutes }} minutes</strong>{% if state.window.extra_minutes %} + {{ state.window.extra_minutes }} extra{% endif %} from the moment you press Start.{% else %}Open lab: work at your own pace until the deadline.{% endif %}
+    {% if state.deadline %}Closes {{ state.deadline|date:"l j F, H:i" }}.{% endif %}
+  </p>
+  {% if state.can_start %}
+    <form method="post" action="{% url 'labs:start' lab.slug %}">{% csrf_token %}
+      <button type="submit">Start lab</button>
+      {% if lab.mode == "timed" %}<span class="small muted">The timer starts immediately and cannot be paused.</span>{% endif %}
+    </form>
+  {% elif state.status == Status.NOT_OPEN %}<p>This lab opens {{ state.window.opens_at|date:"l j F, H:i" }}.</p>
+  {% elif state.status == Status.MISSED %}<p>This lab has closed.</p>
+  {% endif %}
+</div>
+
+{% for t in tasks %}
+<section class="card task" id="task-{{ t.task.key }}">
+  <div class="task-head">
+    <h3>{{ forloop.counter }}. {{ t.task.title }}</h3>
+    <span class="small muted">{{ t.task.points|floatformat:"-2" }} pts{% if t.task.kind == "manual" %} · TA-graded{% endif %}</span>
+  </div>
+  {{ t.prompt }}
+  {% if t.files %}
+    <p class="files">{% for f in t.files %}<a class="btn btn-secondary btn-small" href="{% url 'labs:download' lab.slug t.task.key f %}" download>⬇ {{ f }}</a> {% endfor %}
+      <span class="small muted">Generated for you. Your classmates' files are different.</span></p>
+  {% endif %}
+  {% if t.latest %}
+    <p class="small">
+      Last answer: <code>{{ t.latest.answer|truncatechars:80 }}</code>
+      {% if t.latest.status == "pending" %}<span class="badge badge-info">awaiting TA</span>
+      {% elif t.latest.status == "graded" %}<span class="badge badge-ok">{{ t.latest.score|floatformat:"-2" }} / {{ t.task.points|floatformat:"-2" }}</span>
+      {% elif lab.show_feedback and t.latest.status == "correct" %}<span class="badge badge-ok">correct</span>
+      {% elif lab.show_feedback and t.latest.status == "partial" %}<span class="badge badge-warn">partly correct: {{ t.latest.score|floatformat:"-2" }} / {{ t.task.points|floatformat:"-2" }}</span>
+      {% elif lab.show_feedback and t.latest.status == "incorrect" %}<span class="badge badge-bad">incorrect</span>
+      {% else %}<span class="badge badge-muted">recorded</span>{% endif %}
+      {% if t.limit %}<span class="muted">· {{ t.attempts }}/{{ t.limit }} attempts used</span>{% endif %}
+    </p>
+    {% if t.latest.feedback %}<blockquote class="small">{{ t.latest.feedback|linebreaksbr }}</blockquote>{% endif %}
+  {% endif %}
+  {% if not t.latest and t.limit %}<p class="small muted">{{ t.limit }} attempt{{ t.limit|pluralize }} allowed. Your best attempt counts.</p>{% endif %}
+  {% if state.can_submit and not t.locked %}
+    <form method="post" action="{% url 'labs:submit' lab.slug t.task.key %}">{% csrf_token %}
+      {% if t.def.input == "textarea" %}
+        <textarea name="answer" placeholder="{{ t.def.placeholder }}" required>{% if t.latest.status == "pending" %}{{ t.latest.answer }}{% endif %}</textarea>
+        <p><button type="submit">{% if t.latest %}Update answer{% else %}Save answer{% endif %}</button></p>
+      {% else %}
+        <div class="answer-row">
+          <input type="text" name="answer" placeholder="{{ t.def.placeholder }}" autocomplete="off" spellcheck="false" required>
+          <button type="submit">Submit</button>
+        </div>
+      {% endif %}
+    </form>
+  {% endif %}
+</section>
+{% endfor %}
+
+{% if state.can_submit %}
+<div class="card">
+  <form method="post" action="{% url 'labs:finish' lab.slug %}" onsubmit="return confirm('Finish the lab? You will not be able to change answers afterwards.');">{% csrf_token %}
+    <button class="btn-secondary" type="submit">I'm done: finish lab</button>
+    <span class="small muted">Optional. Your answers are saved as you go{% if state.deadline %} and the lab locks automatically at the deadline{% endif %}.</span>
+  </form>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/timer.js' %}"></script>{% endblock %}

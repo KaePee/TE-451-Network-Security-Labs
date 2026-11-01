@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% load labs_tags %}
+{% block content %}
+<div class="page-head">
+  <div><h1>My labs</h1><p class="muted">One lab per lecture. Each student gets their own numbers, so work it out yourself.</p></div>
+</div>
+<div class="table-wrap"><table>
+  <thead><tr><th>Lecture</th><th>Lab</th><th>Status</th><th>Due</th><th class="num">Score</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td>L{{ r.lab.lecture }}</td>
+      <td><a href="{% url 'labs:detail' r.lab.slug %}">{{ r.lab.title }}</a>
+        {% if r.lab.mode == "timed" %}<span class="badge badge-muted">{{ r.lab.duration_minutes }} min timed</span>{% endif %}
+        {% if not r.lab.published %}<span class="badge badge-warn">staff preview</span>{% endif %}
+        <div class="small muted">{{ r.lab.summary }}</div></td>
+      <td>{% status_badge r.state %}</td>
+      <td class="small">{% if r.state.deadline %}{{ r.state.deadline|date:"D j M, H:i" }}{% else %}<span class="muted">-</span>{% endif %}</td>
+      <td class="num">{% if r.score is not None %}{{ r.score|floatformat:"-2" }} / {{ r.max|floatformat:"-2" }}{% else %}<span class="muted">-</span>{% endif %}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="5" class="muted">No labs are open yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

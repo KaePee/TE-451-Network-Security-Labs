@@ -1,0 +1,86 @@
+{% extends "base.html" %}{% load labs_tags %}
+{% block title %}{{ student }} · TE 451 Labs{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="muted small"><a href="{% url 'staff:students' %}">← Students</a></p>
+    <h1>{{ student.get_full_name }} <span class="muted">{{ student.index_number }}</span></h1>
+    <p class="muted small">{{ student.email|default:"no email" }} · last login {{ student.last_login|date:"j M Y H:i"|default:"never" }} · last seen {% if student.last_seen %}{{ student.last_seen|timesince }} ago{% else %}never{% endif %}
+      {% if student.suspended %}<span class="badge badge-bad">suspended: {{ student.suspended_reason }}</span>{% endif %}</p>
+  </div>
+  <div class="stat"><div class="num">{{ total_pct }}%</div><div class="lbl">Weighted total</div></div>
+</div>
+
+<div class="two-col">
+<div>
+  <h2>Labs</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Lab</th><th>Status</th><th>Started</th><th>Deadline</th><th class="num">Score</th><th></th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr>
+        <td>L{{ r.lab.lecture }} · {{ r.lab.title }}</td>
+        <td>{% status_badge r.state %}</td>
+        <td class="small">{{ r.state.session.started_at|date:"j M H:i"|default:"-" }}</td>
+        <td class="small">{{ r.state.deadline|date:"j M H:i"|default:"-" }}{% if r.state.window.extra_minutes %} <span class="badge badge-info">+{{ r.state.window.extra_minutes }}m</span>{% endif %}</td>
+        <td class="num">{% if r.score is not None %}{{ r.score|floatformat:"-2" }}/{{ r.max|floatformat:"-2" }}{% else %}-{% endif %}</td>
+        <td>{% if r.state.session %}
+          <form class="inline-form" method="post" action="{% url 'staff:session_reset' student.pk r.lab.slug %}" onsubmit="const r=prompt('Reset this attempt? All answers are deleted and the student gets new numbers.\n\nReason:'); if(!r) return false; this.reason.value=r;">{% csrf_token %}
+            <input type="hidden" name="reason"><button class="btn-secondary btn-small" type="submit">Reset</button></form>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+
+  <h2>Login history</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>When</th><th>Event</th><th>IP</th><th>Browser</th></tr></thead>
+    <tbody>{% for e in logins %}
+      <tr><td class="small">{{ e.at|date:"D j M H:i:s" }}</td><td>{{ e.get_kind_display }}</td><td class="small">{{ e.ip|default:"" }}</td><td class="small muted">{{ e.user_agent|truncatechars:60 }}</td></tr>
+    {% empty %}<tr><td colspan="4" class="muted">No logins yet.</td></tr>{% endfor %}</tbody>
+  </table></div>
+
+  {% if audit %}
+  <h2>Staff actions on this student</h2>
+  <div class="table-wrap"><table><tbody>{% for a in audit %}
+    <tr><td class="small">{{ a.at|date:"j M H:i" }}</td><td>{{ a.actor }}</td><td>{{ a.action }}</td><td class="small">{{ a.detail }}</td></tr>
+  {% endfor %}</tbody></table></div>
+  {% endif %}
+</div>
+
+<div>
+  <div class="card">
+    <h3>Extra time</h3>
+    {% for a in accommodations %}
+      <p class="small">
+        <strong>{% if a.lab %}{{ a.lab.slug }}{% else %}All labs{% endif %}</strong>:
+        {% if a.extra_minutes %}+{{ a.extra_minutes }} min{% endif %}{% if a.closes_at_override %} · deadline {{ a.closes_at_override|date:"j M H:i" }}{% endif %}
+        <br><span class="muted">{{ a.reason }}, by {{ a.granted_by }} on {{ a.created_at|date:"j M" }}</span>
+        <form class="inline-form" method="post" action="{% url 'staff:accommodation_delete' student.pk a.pk %}">{% csrf_token %}<button class="btn-secondary btn-small" type="submit">Remove</button></form>
+      </p>
+    {% empty %}<p class="small muted">None.</p>{% endfor %}
+    <form method="post" action="{% url 'staff:accommodation_add' student.pk %}">{% csrf_token %}
+      {% for field in acc_form %}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% endfor %}
+      <p><button type="submit">Grant</button></p>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Account</h3>
+    <form method="post" action="{% url 'staff:student_reset_password' student.pk %}" onsubmit="return confirm('Generate a new temporary password?');">{% csrf_token %}
+      <button class="btn-secondary" type="submit">Reset password</button>
+    </form>
+    {% if student.suspended %}
+      <form method="post" action="{% url 'staff:student_unsuspend' student.pk %}" style="margin-top:.75rem">{% csrf_token %}
+        <button type="submit">Reinstate account</button></form>
+    {% else %}
+      <form method="post" action="{% url 'staff:student_suspend' student.pk %}" style="margin-top:.75rem">{% csrf_token %}
+        <label for="id_reason">Suspend: reason</label>{{ suspend_form.reason }}
+        <p><button class="btn-danger" type="submit">Suspend account</button></p>
+        <p class="small muted">Takes effect immediately, even mid-lab.</p>
+      </form>
+    {% endif %}
+  </div>
+</div>
+</div>
+{% endblock %}

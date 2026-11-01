@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Students · TE 451 Labs{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Students</h1><p class="muted">{{ page.paginator.count }} shown</p></div>
+  <div class="actions">
+    <a class="btn" href="{% url 'staff:student_import' %}">Import CSV</a>
+    <a class="btn btn-secondary" href="{% url 'staff:student_add' %}">Add one</a>
+    <a class="btn btn-secondary" href="{% url 'staff:export_marks' %}">Export marks</a>
+  </div>
+</div>
+<form method="get" class="card actions">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search index number, name, email" style="flex:1;min-width:200px">
+  <select name="filter" style="width:auto">
+    <option value="">All</option>
+    <option value="suspended" {% if filter == "suspended" %}selected{% endif %}>Suspended</option>
+    <option value="never" {% if filter == "never" %}selected{% endif %}>Never logged in</option>
+  </select>
+  <button type="submit">Filter</button>
+</form>
+<div class="table-wrap"><table>
+  <thead><tr><th>Index no.</th><th>Name</th><th>Last login</th><th>Last seen</th><th class="num">Total</th><th></th></tr></thead>
+  <tbody>
+  {% for s in page.object_list %}
+    <tr>
+      <td><a href="{% url 'staff:student' s.pk %}">{{ s.index_number }}</a></td>
+      <td>{{ s.last_name }}, {{ s.first_name }}</td>
+      <td class="small">{{ s.last_login|date:"j M H:i"|default:"never" }}</td>
+      <td class="small">{{ s.last_seen|timesince|default:"-" }}{% if s.last_seen %} ago{% endif %}</td>
+      <td class="num">{{ s.total_pct }}%</td>
+      <td>{% if s.suspended %}<span class="badge badge-bad">suspended</span>{% endif %}</td>
+    </tr>
+  {% empty %}<tr><td colspan="6" class="muted">No students. Import a class list to get started.</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% if page.has_other_pages %}
+<p class="actions">
+  {% if page.has_previous %}<a href="?q={{ q|urlencode }}&filter={{ filter }}&page={{ page.previous_page_number }}">← Prev</a>{% endif %}
+  <span class="muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a href="?q={{ q|urlencode }}&filter={{ filter }}&page={{ page.next_page_number }}">Next →</a>{% endif %}
+</p>
+{% endif %}
+{% endblock %}

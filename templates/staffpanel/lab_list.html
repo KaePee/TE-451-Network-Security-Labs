@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><div><h1>Labs</h1><p class="muted">Configure when each lab runs. Task content lives in code (<code>apps/labs/content/</code>).</p></div></div>
+<div class="table-wrap"><table>
+  <thead><tr><th>Lab</th><th>Visible</th><th>Mode</th><th>Opens</th><th>Closes</th><th class="num">Weight</th><th></th></tr></thead>
+  <tbody>{% for lab in labs %}
+    <tr><td><a href="{% url 'staff:lab_progress' lab.slug %}">L{{ lab.lecture }} · {{ lab.title }}</a></td>
+      <td>{% if lab.published %}<span class="badge badge-ok">published</span>{% else %}<span class="badge badge-muted">hidden</span>{% endif %}</td>
+      <td class="small">{{ lab.get_mode_display }}{% if lab.mode == "timed" %} · {{ lab.duration_minutes }} min{% endif %}</td>
+      <td class="small">{{ lab.opens_at|date:"D j M H:i"|default:"-" }}</td>
+      <td class="small">{{ lab.closes_at|date:"D j M H:i"|default:"-" }}</td>
+      <td class="num">{{ lab.weight|floatformat:"-2" }}</td>
+      <td><a class="btn btn-secondary btn-small" href="{% url 'staff:lab_edit' lab.slug %}">Settings</a>
+        <a class="btn btn-secondary btn-small" href="{% url 'labs:detail' lab.slug %}">Preview</a></td></tr>
+  {% endfor %}</tbody>
+</table></div>
+{% endblock %}

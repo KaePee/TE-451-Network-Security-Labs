@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><div><h1>Grading queue</h1><p class="muted">Short answers waiting for a TA, oldest first.</p></div>
+  <form method="get" class="actions"><select name="lab" style="width:auto" onchange="this.form.submit()"><option value="">All labs</option>
+    {% for l in labs %}<option value="{{ l.slug }}" {% if lab == l.slug %}selected{% endif %}>L{{ l.lecture }} · {{ l.title }}</option>{% endfor %}</select></form>
+</div>
+<div class="table-wrap"><table>
+  <thead><tr><th>Submitted</th><th>Student</th><th>Lab / task</th><th>Answer</th><th></th></tr></thead>
+  <tbody>{% for s in pending %}
+    <tr><td class="small">{{ s.created_at|date:"j M H:i" }}</td><td>{{ s.session.student.index_number }}</td>
+      <td class="small">{{ s.task.lab.slug }} / {{ s.task.title }}</td><td class="small">{{ s.answer|truncatechars:90 }}</td>
+      <td><a class="btn btn-small" href="{% url 'staff:grade' s.pk %}">Grade</a></td></tr>
+  {% empty %}<tr><td colspan="5" class="muted">Nothing to grade. 🎉</td></tr>{% endfor %}</tbody>
+</table></div>
+{% endblock %}

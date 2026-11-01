@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><div><h1>Audit log</h1><p class="muted">Every staff action that affects a student's standing. Read-only.</p></div></div>
+<div class="table-wrap"><table>
+  <thead><tr><th>When</th><th>Staff</th><th>Action</th><th>Student</th><th>Detail</th></tr></thead>
+  <tbody>{% for a in page.object_list %}
+    <tr><td class="small">{{ a.at|date:"j M Y H:i" }}</td><td>{{ a.actor }}</td><td><code>{{ a.action }}</code></td>
+      <td>{% if a.target %}<a href="{% url 'staff:student' a.target.pk %}">{{ a.target.index_number|default:a.target.username }}</a>{% endif %}</td>
+      <td class="small">{{ a.detail }}</td></tr>
+  {% empty %}<tr><td colspan="5" class="muted">No entries.</td></tr>{% endfor %}</tbody>
+</table></div>
+{% if page.has_other_pages %}<p class="actions">{% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">← Newer</a>{% endif %}<span class="muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>{% if page.has_next %}<a href="?page={{ page.next_page_number }}">Older →</a>{% endif %}</p>{% endif %}
+{% endblock %}

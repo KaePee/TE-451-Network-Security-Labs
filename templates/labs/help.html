@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+<h1>Help</h1>
+<div class="card">
+  <h2 id="ca">Installing the lab root certificate</h2>
+  <p>Download <a href="http://netsec.internal/ca.crt">http://netsec.internal/ca.crt</a> while on the lab network, then:</p>
+  <ul>
+    <li><strong>Windows:</strong> double-click the file → <em>Install Certificate</em> → <em>Current User</em> → <em>Place all certificates in the following store</em> → <em>Trusted Root Certification Authorities</em>.</li>
+    <li><strong>macOS:</strong> double-click to add it to Keychain Access (login keychain), open it, expand <em>Trust</em>, set <em>When using this certificate</em> to <em>Always Trust</em>.</li>
+    <li><strong>Linux (Ubuntu):</strong> <code>sudo cp ca.crt /usr/local/share/ca-certificates/te451.crt &amp;&amp; sudo update-ca-certificates</code>. Firefox keeps its own store: Settings → Privacy &amp; Security → Certificates → View Certificates → Authorities → Import.</li>
+  </ul>
+  <p class="small muted">Only trust a root CA like this one when you know exactly who runs it. Remove it at the end of the semester.</p>
+</div>
+<div class="card">
+  <h2>How labs work</h2>
+  <ul>
+    <li>Your numbers, files and keys are generated just for you. Discuss ideas with classmates; never copy answers. They wouldn't match anyway.</li>
+    <li><strong>Timed labs</strong> start a countdown when you press Start. It keeps running if you close the browser.</li>
+    <li><strong>Open labs</strong> can be worked on in several sittings until the deadline.</li>
+    <li>Short written answers are graded by a TA. You can update them until the lab closes.</li>
+    <li>Need extra time for a valid reason? Talk to the lecturer or a TA <em>before</em> the deadline.</li>
+  </ul>
+</div>
+{% endblock %}

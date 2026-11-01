@@ -1,0 +1,35 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}TE 451 Labs{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+<header class="topbar"><div class="inner">
+  <a class="brand" href="{% url 'home' %}">TE 451 <span>Labs</span></a>
+  {% if user.is_authenticated %}
+  <nav>
+    <a href="{% url 'home' %}">My labs</a>
+    <a href="{% url 'help' %}">Help</a>
+    {% if user.is_course_staff %}
+      <a href="{% url 'staff:dashboard' %}">Dashboard</a>
+      <a href="{% url 'staff:students' %}">Students</a>
+      <a href="{% url 'staff:lab_list' %}">Labs</a>
+      <a href="{% url 'staff:grading' %}">Grading</a>
+    {% endif %}
+    <span class="muted small">{{ user.index_number|default:user.username }}</span>
+    <form class="inline-form" method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+      <button class="btn-secondary btn-small" type="submit">Log out</button>
+    </form>
+  </nav>
+  {% endif %}
+</div></header>
+<main class="{% block main_class %}{% endblock %}">
+  {% if messages %}<ul class="messages">{% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>{% endif %}
+  {% block content %}{% endblock %}
+</main>
+{% block scripts %}{% endblock %}
+</body>
+</html>

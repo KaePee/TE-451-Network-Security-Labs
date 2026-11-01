@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+<h1>Add a student</h1>
+<div class="card">
+  <form method="post">{% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}{% endfor %}
+    <p><button type="submit">Create account</button> <span class="small muted">A temporary password is generated and shown once.</span></p>
+  </form>
+</div>
+{% endblock %}

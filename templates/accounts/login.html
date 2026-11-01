@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Log in · TE 451 Labs{% endblock %}
+{% block content %}
+<div class="login-box card">
+  <h1>Log in</h1>
+  <p class="muted">TE 451: Fundamentals of Network Security</p>
+  {% if suspended %}<ul class="messages"><li class="error">Your account has been suspended. Please speak to the lecturer or a TA.</li></ul>{% endif %}
+  <form method="post">{% csrf_token %}
+    {{ form.non_field_errors }}
+    <label for="id_username">{{ form.username.label }}</label>{{ form.username }}
+    <label for="id_password">Password</label>{{ form.password }}
+    <input type="hidden" name="next" value="{{ next }}">
+    <p><button type="submit">Log in</button></p>
+  </form>
+  <p class="small muted">Forgotten your password? Ask a TA to reset it.</p>
+</div>
+{% endblock %}

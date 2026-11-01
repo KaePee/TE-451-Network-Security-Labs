@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+<p class="muted small"><a href="{% url 'staff:grading' %}">← Queue</a></p>
+<h1>{{ sub.task.title }}</h1>
+<p class="muted">{{ sub.task.lab.title }} · {{ sub.session.student }} · submitted {{ sub.created_at|date:"j M H:i" }}</p>
+<div class="card"><h3>Question</h3>{{ prompt }}</div>
+{% if rubric %}<div class="card"><h3>Rubric</h3><p class="small">{{ rubric }}</p></div>{% endif %}
+<div class="card"><h3>Answer</h3><pre>{{ sub.answer }}</pre></div>
+<div class="card">
+  <form method="post">{% csrf_token %}
+    {{ form.non_field_errors }}
+    <label for="id_score">Score (out of {{ sub.task.points|floatformat:"-2" }})</label>{{ form.score }}{{ form.score.errors }}
+    <label for="id_feedback">Feedback to student (optional)</label>{{ form.feedback }}
+    <p><button type="submit">Save &amp; next</button></p>
+  </form>
+</div>
+{% endblock %}
