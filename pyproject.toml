@@ -1,0 +1,14 @@
+[project]
+name = "netsec-labs"
+version = "0.1.0"
+description = "Labs for TE-451: Fundamentals of Network Security"
+requires-python = ">=3.12"
+dependencies = [
+    "argon2-cffi>=23",
+    "cryptography>=44",
+    "django>=5.2,<5.3",
+    "django-axes>=7",
+    "gunicorn>=23",
+    "psycopg[binary]>=3.2",
+    "whitenoise>=6.7",
+]
