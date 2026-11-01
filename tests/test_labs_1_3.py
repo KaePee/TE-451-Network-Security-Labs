@@ -251,9 +251,10 @@ class FileDownloadTests(TestCase):
         self.assertEqual(self.client.get(url("other-student.pcap")).status_code, 404)
 
     def test_lab_pages_render_with_files_and_partial(self):
-        for slug in ("l01-security-concepts", "l03-symmetric", "l04-public-key"):
+        for i, slug in enumerate(("l01-security-concepts", "l03-symmetric", "l04-public-key",
+                                  "l05-integrity", "l06-pki")):
             lab = synced_lab(slug)
-            student = make_student(f"20460{len(slug)}")
+            student = make_student(f"204600{i}")
             self.client.force_login(student)
             self.client.post(reverse("labs:start", args=[slug]))
             r = self.client.get(reverse("labs:detail", args=[slug]))

@@ -247,6 +247,8 @@ def session_reset(request, pk, slug):
     session = get_object_or_404(LabSession, student_id=pk, lab__slug=slug)
     services.reset_session(session, request.user, request.POST.get("reason", ""))
     messages.success(request, f"{slug} reset. The student can start again with new numbers.")
+    if request.POST.get("back") == "progress":
+        return redirect("staff:lab_progress", slug=slug)
     return redirect("staff:student", pk=pk)
 
 
@@ -279,7 +281,24 @@ def lab_edit(request, slug):
         record(request.user, "lab_settings", detail=f"{slug}: {', '.join(form.changed_data)}")
         messages.success(request, "Lab settings saved.")
         return redirect("staff:lab_list")
-    return render(request, "staffpanel/lab_edit.html", {"lab": lab, "form": form})
+    return render(request, "staffpanel/lab_edit.html",
+                  {"lab": lab, "form": form, "attempts": lab.sessions.count()})
+
+
+@staff_required
+@require_POST
+def lab_reset(request, slug):
+    lab = get_object_or_404(Lab, slug=slug)
+    reason = request.POST.get("reason", "").strip()
+    if request.POST.get("confirm", "").strip() != lab.slug or not reason:
+        messages.error(request, f"Nothing was reset. Type {lab.slug} exactly and give a reason.")
+        return redirect("staff:lab_edit", slug=slug)
+    count = services.reset_lab(lab, request.user, reason)
+    messages.success(request, f"{slug} reset: {count} attempts deleted.")
+    if lab.closes_at is not None and lab.closes_at <= timezone.now():
+        messages.warning(request, "This lab has closed, so students can't start again "
+                                  "until you move its close time.")
+    return redirect("staff:lab_progress", slug=slug)
 
 
 @staff_required

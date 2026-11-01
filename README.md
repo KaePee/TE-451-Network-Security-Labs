@@ -116,6 +116,7 @@ generate parameters **only** from the `rng` you're given, return the prompt via
 | Written answer | subclass `ManualTask` with a `rubric` | every lab's last task |
 | Network capture | `content/pcap.py` (`Capture`, `TcpConversation`, DNS) | `l01_concepts.py` |
 | Big primes, safe primes | `content/numtheory.py` (`random_prime_bits`, `next_prime`, `safe_prime`) | `l04_public_key.py` |
+| Deterministic X.509 cert / chain | `content/x509gen.py` (`make_cert`, `deterministic_rsa_key`) | `l06_pki.py` |
 
 Generated parameters are cached per worker process, so a slow `generate()` (Lab 4's
 1024-bit key takes ~0.3 s) runs once per student, not on every page view. Treat
@@ -134,9 +135,19 @@ otherwise), so graders agree with what Wireshark shows.
 | `l02-number-theory` | L2 | GCD, inverse, modexp, CRT, Miller–Rabin, φ(n); Carmichael (TA) |
 | `l03-symmetric` | L3 | Caesar, substitution, Vigenère, rail fence, two-time pad, spot ECB, CBC bit-flip; why AEAD (TA) |
 | `l04-public-key` | L4 | RSA by hand; break RSA with close primes (Fermat), e = 3 (cube root), a shared prime (gcd); DH small group (baby-step giant-step), DH man in the middle; hybrid/ECC (TA) |
+| `l05-integrity` | L5 | identify hashes; crack an unsalted hash and salted hashes with external tools (CrackStation/john/hashcat); verify + forge an HMAC; salts & slow hashes (TA) |
+| `l06-pki` | L6 | read an X.509 certificate; verify a root→intermediate→leaf chain; spot the cert a browser rejects (expiry/SAN); KDC & revocation (TA) |
 
 Lab content is code, so it's versioned and reviewed. Staff control *when* labs
 run (mode, window, duration, attempts, weight, feedback) from the dashboard.
+
+## Resetting attempts
+
+Resetting deletes the attempt (answers, marks, TA grades) and the student gets new
+numbers when they start again. Each reset goes in the audit log with its reason.
+
+* **One student:** the Reset button on the lab's progress page or the student's page.
+* **All students:** the lab's Settings page. You must type the lab's slug and give a reason.
 
 ## Time rules
 

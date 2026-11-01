@@ -7,12 +7,14 @@
 <p class="small muted">✓ correct · amber number = partial score · ✗n = n wrong tries · … awaiting TA · green number = TA grade</p>
 <div class="table-wrap"><table>
   <thead><tr><th>Student</th><th>Status</th><th>Time left</th>
-    {% for t in tasks %}<th class="grid-cell" title="{{ t.title }}">{{ forloop.counter }}</th>{% endfor %}</tr></thead>
+    {% for t in tasks %}<th class="grid-cell" title="{{ t.title }}">{{ forloop.counter }}</th>{% endfor %}<th></th></tr></thead>
   <tbody>{% for r in rows %}
     <tr><td><a href="{% url 'staff:student' r.student.pk %}">{{ r.student.index_number }}</a> <span class="small muted">{{ r.student.last_name }}</span></td>
       <td>{% status_badge r.state %}</td>
       <td class="small">{% if r.state.seconds_left is not None %}{% widthratio r.state.seconds_left 60 1 %} min{% endif %}</td>
       {% for c in r.cells %}<td class="grid-cell">{% if c %}{% if c.status == "correct" %}<span class="badge badge-ok">✓</span>{% elif c.status == "partial" %}<span class="badge badge-warn">{{ c.score|floatformat:"-1" }}</span>{% elif c.status == "graded" %}<span class="badge badge-ok">{{ c.score|floatformat:"-1" }}</span>{% elif c.status == "pending" %}<span class="badge badge-info">…</span>{% else %}<span class="badge badge-bad">✗{{ c.tries }}</span>{% endif %}{% endif %}</td>{% endfor %}
+      <td>{% if r.state.session %}<form class="inline-form" method="post" action="{% url 'staff:session_reset' r.student.pk lab.slug %}" onsubmit="const r=prompt('Reset this attempt? All answers are deleted and the student gets new numbers.\n\nReason:'); if(!r) return false; this.reason.value=r;">{% csrf_token %}
+        <input type="hidden" name="reason"><input type="hidden" name="back" value="progress"><button class="btn-secondary btn-small" type="submit">Reset</button></form>{% endif %}</td>
     </tr>
   {% endfor %}</tbody>
 </table></div>

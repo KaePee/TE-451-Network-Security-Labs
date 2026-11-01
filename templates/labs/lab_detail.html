@@ -53,7 +53,10 @@
     </p>
     {% if t.latest.feedback %}<blockquote class="small">{{ t.latest.feedback|linebreaksbr }}</blockquote>{% endif %}
   {% endif %}
-  {% if not t.latest and t.limit %}<p class="small muted">{{ t.limit }} attempt{{ t.limit|pluralize }} allowed. Your best attempt counts.</p>{% endif %}
+  {% if not t.latest %}
+    {% if not state.can_submit %}<p class="small"><span class="badge badge-bad">unanswered</span></p>
+    {% elif t.limit %}<p class="small muted">{{ t.limit }} attempt{{ t.limit|pluralize }} allowed. Your best attempt counts.</p>{% endif %}
+  {% endif %}
   {% if state.can_submit and not t.locked %}
     <form method="post" action="{% url 'labs:submit' lab.slug t.task.key %}">{% csrf_token %}
       {% if t.def.input == "textarea" %}

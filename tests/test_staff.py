@@ -11,7 +11,7 @@ from apps.labs import services
 from apps.labs.models import Accommodation
 from apps.staffpanel import roster
 
-from .helpers import make_staff, make_student, synced_lab
+from .helpers import ago, make_staff, make_student, synced_lab
 
 FAST_HASHER = override_settings(
     PASSWORD_HASHERS=["django.contrib.auth.hashers.MD5PasswordHasher"],
@@ -201,3 +201,84 @@ class LockoutTests(TestCase):
         self.assertEqual(self._login("10.10.30.66", "correct-horse-battery").status_code, 429)
         r = self._login("10.10.30.44", "correct-horse-battery")
         self.assertEqual(r.status_code, 302)
+
+
+@FAST_HASHER
+class LabResetTests(TestCase):
+    def setUp(self):
+        self.lab = synced_lab()
+        self.other_lab = synced_lab("l03-symmetric")
+        self.a, self.b = make_student("2045001"), make_student("2045002")
+        for student in (self.a, self.b):
+            services.start_session(self.lab, student)
+        services.start_session(self.other_lab, self.a)
+        self.client.force_login(make_staff())
+        self.url = reverse("staff:lab_reset", args=[self.lab.slug])
+
+    def test_resets_every_student_in_this_lab_only(self):
+        r = self.client.post(self.url, {"confirm": self.lab.slug, "reason": "bad question"})
+        self.assertRedirects(r, reverse("staff:lab_progress", args=[self.lab.slug]))
+        self.assertEqual(self.lab.sessions.count(), 0)
+        self.assertEqual(self.other_lab.sessions.count(), 1)
+        self.assertEqual(AuditLog.objects.filter(action="reset_lab").count(), 2)
+        summary = AuditLog.objects.get(action="reset_lab_all")
+        self.assertIn("2 attempts: bad question", summary.detail)
+        # Students can start again.
+        self.assertTrue(services.start_session(self.lab, self.a))
+
+    def test_needs_exact_slug_and_a_reason(self):
+        for data in ({"confirm": "wrong", "reason": "x"}, {"confirm": self.lab.slug, "reason": " "},
+                     {}):
+            self.client.post(self.url, data)
+            self.assertEqual(self.lab.sessions.count(), 2, data)
+        self.assertFalse(AuditLog.objects.filter(action__startswith="reset_lab").exists())
+
+    def test_get_and_students_cannot_reset(self):
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+        self.client.force_login(self.a)
+        r = self.client.post(self.url, {"confirm": self.lab.slug, "reason": "x"})
+        self.assertEqual(r.status_code, 403)
+        self.assertEqual(self.lab.sessions.count(), 2)
+
+    def test_one_student_from_the_progress_page(self):
+        progress = reverse("staff:lab_progress", args=[self.lab.slug])
+        url = reverse("staff:session_reset", args=[self.a.pk, self.lab.slug])
+        self.assertContains(self.client.get(progress), url)
+        r = self.client.post(url, {"reason": "laptop died", "back": "progress"})
+        self.assertRedirects(r, progress)
+        self.assertEqual(list(self.lab.sessions.values_list("student", flat=True)), [self.b.pk])
+        self.assertEqual(self.other_lab.sessions.count(), 1)
+
+
+@FAST_HASHER
+class UnansweredBadgeTests(TestCase):
+    BADGE = 'badge-bad">unanswered'
+
+    def setUp(self):
+        self.lab = synced_lab()
+        self.student = make_student()
+        self.session = services.start_session(self.lab, self.student)
+        self.client.force_login(self.student)
+        self.url = reverse("labs:detail", args=[self.lab.slug])
+
+    def test_hidden_while_working(self):
+        self.assertNotContains(self.client.get(self.url), self.BADGE)
+
+    def test_shown_only_on_unanswered_tasks_after_finishing(self):
+        task = self.lab.tasks.get(key="gcd")
+        services.submit_answer(self.session, task, "1")
+        services.finish_session(self.session)
+        total = self.lab.tasks.filter(active=True).count()
+        self.assertContains(self.client.get(self.url), self.BADGE, count=total - 1)
+
+    def test_shown_when_time_runs_out(self):
+        self.lab.closes_at = ago(minutes=1)
+        self.lab.save()
+        total = self.lab.tasks.filter(active=True).count()
+        self.assertContains(self.client.get(self.url), self.BADGE, count=total)
+
+    def test_shown_with_feedback_hidden(self):
+        self.lab.show_feedback = False
+        self.lab.save()
+        services.finish_session(self.session)
+        self.assertContains(self.client.get(self.url), self.BADGE)

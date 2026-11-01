@@ -25,6 +25,7 @@ urlpatterns = [
     path("labs/", views.lab_list, name="lab_list"),
     path("labs/<slug:slug>/", views.lab_progress, name="lab_progress"),
     path("labs/<slug:slug>/settings/", views.lab_edit, name="lab_edit"),
+    path("labs/<slug:slug>/reset/", views.lab_reset, name="lab_reset"),
     path("grading/", views.grading_queue, name="grading"),
     path("grading/<int:sub_id>/", views.grade, name="grade"),
     path("export/marks.csv", views.export_marks, name="export_marks"),

@@ -18,4 +18,13 @@
   </form>
   <p class="small muted">Times are Africa/Accra (GMT). Changes apply immediately, including to students mid-session. Extra time for individual students is granted from their student page.</p>
 </div>
+<div class="card">
+  <h3>Reset this lab for all students</h3>
+  <p class="small">Deletes all {{ attempts }} attempt{{ attempts|pluralize }}, including answers, marks and TA grades. Students get new numbers when they start again. This can't be undone from here, so <a href="{% url 'staff:export_marks' %}">export the marks</a> first. To reset one student, use the Reset button on the <a href="{% url 'staff:lab_progress' lab.slug %}">progress page</a>.</p>
+  <form method="post" action="{% url 'staff:lab_reset' lab.slug %}">{% csrf_token %}
+    <label for="id_reset_reason">Reason</label><input id="id_reset_reason" type="text" name="reason" autocomplete="off" required>
+    <label for="id_reset_confirm">Type <code>{{ lab.slug }}</code> to confirm</label><input id="id_reset_confirm" type="text" name="confirm" autocomplete="off" spellcheck="false" required>
+    <p><button class="btn-danger" type="submit">Reset for all students</button></p>
+  </form>
+</div>
 {% endblock %}
