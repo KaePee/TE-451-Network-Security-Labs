@@ -92,7 +92,6 @@ class CrackSalted(TaskDef):
     placeholder = "both passwords, comma-separated"
 
     def generate(self, rng):
-        pws = rng.sample(LEAKED_PASSWORDS, 2)
         salts = [f"{rng.randrange(16**8):08x}", f"{rng.randrange(16**8):08x}"]
         same = rng.choice(LEAKED_PASSWORDS)
         # Two users with the SAME password but different salts -> different digests.
