@@ -2,7 +2,7 @@
 
 from . import (l00_orientation, l01_concepts, l02_number_theory, l03_symmetric,
                l04_public_key, l05_integrity, l06_pki, l07_auth, l08_transport,
-               l09_wireless, l10_email_ip)
+               l09_wireless, l10_email_ip, l11_malware_firewall, l12_ethics_law)
 from .base import LabDef
 
 LABS: list[LabDef] = [
@@ -17,6 +17,8 @@ LABS: list[LabDef] = [
     l08_transport.LAB,
     l09_wireless.LAB,
     l10_email_ip.LAB,
+    l11_malware_firewall.LAB,
+    l12_ethics_law.LAB,
 ]
 
 REGISTRY: dict[str, LabDef] = {lab.slug: lab for lab in LABS}

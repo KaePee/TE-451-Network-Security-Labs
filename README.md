@@ -142,6 +142,8 @@ otherwise), so graders agree with what Wireshark shows.
 | `l08-transport` | L8 | cipher suites & forward secrecy; read a TLS handshake in Wireshark (SNI + chosen suite); fingerprint an SSH host key; the handshake & metadata leaks (TA) |
 | `l09-wireless` | L9 | derive the WPA2 PMK (PBKDF2 over passphrase + SSID); crack a weak passphrase offline from a wordlist; spot the evil-twin AP in a scan; WEP→WPA3 & wireless threats (TA) |
 | `l10-email-ip` | L10 | evaluate SPF to catch a spoofed sender; verify S/MIME signatures to find a tampered and a forged email; classify IPsec transport vs tunnel mode; email trust & IP-layer security (TA) |
+| `l11-malware-firewall` | L11 | trace packets through an ordered firewall ruleset (first-match, default-deny); detect a TCP SYN port scan in a capture; triage malware by type; firewalls/IDS & defence in depth (TA) |
+| `l12-ethics-law` | L12 | tell authorised security work from an offence; order the steps of responsible disclosure; map incidents to offence categories; ethics/law capstone reflection (TA) |
 
 Lab content is code, so it's versioned and reviewed. Staff control *when* labs
 run (mode, window, duration, attempts, weight, feedback) from the dashboard.

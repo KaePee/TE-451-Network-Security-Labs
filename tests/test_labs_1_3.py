@@ -253,7 +253,8 @@ class FileDownloadTests(TestCase):
     def test_lab_pages_render_with_files_and_partial(self):
         for i, slug in enumerate(("l01-security-concepts", "l03-symmetric", "l04-public-key",
                                   "l05-integrity", "l06-pki", "l07-auth",
-                                  "l08-transport", "l09-wireless", "l10-email-ip")):
+                                  "l08-transport", "l09-wireless", "l10-email-ip",
+                                  "l11-malware-firewall")):
             lab = synced_lab(slug)
             student = make_student(f"204600{i}")
             self.client.force_login(student)
